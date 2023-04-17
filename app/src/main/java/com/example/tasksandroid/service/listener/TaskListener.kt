@@ -1,4 +1,4 @@
-package com.example.tasksandroid.service
+package com.example.tasksandroid.service.listener
 
 interface TaskListener {
     /**
