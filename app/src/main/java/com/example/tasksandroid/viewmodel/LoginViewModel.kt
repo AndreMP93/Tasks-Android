@@ -6,15 +6,18 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.example.tasksandroid.model.PersonModel
+import com.example.tasksandroid.model.PriorityModel
 import com.example.tasksandroid.model.ValidationModel
 import com.example.tasksandroid.service.listener.APIListener
 import com.example.tasksandroid.service.repository.PersonRepository
+import com.example.tasksandroid.service.repository.PriorityRepository
 import com.example.tasksandroid.service.repository.SecurityPreferences
 import com.example.tasksandroid.service.repository.remote.RetrofitClient
 
 class LoginViewModel(application: Application): AndroidViewModel(application) {
 
     private val personRepository = PersonRepository(application.applicationContext)
+    private val priorityRepository = PriorityRepository(application.applicationContext)
     private val securityPreferences =SecurityPreferences(application.applicationContext)
 
     private val _login = MutableLiveData<ValidationModel>()
@@ -50,7 +53,19 @@ class LoginViewModel(application: Application): AndroidViewModel(application) {
         val personKey = securityPreferences.get(TaskConstants.SHARED.PERSON_KEY)
 
         RetrofitClient.addHearder(token, personKey)
+        val logged = (token != "" && personKey != "")
+        _loggedUser.value = logged
+        if(logged){
+            priorityRepository.listPriority(object : APIListener<List<PriorityModel>>{
+                override fun onSuccess(result: List<PriorityModel>) {
+                    priorityRepository.savePriorities(result)
+                }
 
-        _loggedUser.value = (token != "" && personKey != "")
+                override fun onFailure(onMessage: String) {
+                    TODO("Not yet implemented")
+                }
+
+            })
+        }
     }
 }

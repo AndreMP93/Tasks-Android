@@ -26,8 +26,17 @@ class LoginActivity : AppCompatActivity() {
             )
         }
 
+        loginBuilder.cadastraSe.setOnClickListener {
+            startActivity(Intent(applicationContext, RegisterActivity::class.java))
+        }
+
         loginViewModel.verifyLoggedUser()
         observes()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        loginViewModel.verifyLoggedUser()
     }
 
     private fun observes(){

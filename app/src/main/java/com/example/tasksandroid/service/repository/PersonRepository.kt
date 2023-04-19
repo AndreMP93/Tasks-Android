@@ -26,13 +26,28 @@ class PersonRepository (val context: Context){
 
                     listener.onFailure(failureResponse(response.errorBody().toString()))
                 }
-
-
             }
 
             override fun onFailure(call: Call<PersonModel>, t: Throwable) {
                 listener.onFailure(context.getString(R.string.ERROR_UNEXPECTED))
+            }
 
+        })
+    }
+
+    fun create(name: String, email: String, password: String, listener: APIListener<PersonModel>){
+        val call = remoteCall.create(name, email, password)
+        call.enqueue(object :Callback<PersonModel>{
+            override fun onResponse(call: Call<PersonModel>, response: Response<PersonModel>) {
+                if(response.code() == TaskConstants.HTTP.SUCCESS){
+                    response.body()?.let { listener.onSuccess(it) }
+                }else{
+                    listener.onFailure(failureResponse(response.errorBody().toString()))
+                }
+            }
+
+            override fun onFailure(call: Call<PersonModel>, t: Throwable) {
+                listener.onFailure(context.getString(R.string.ERROR_UNEXPECTED))
             }
 
         })
