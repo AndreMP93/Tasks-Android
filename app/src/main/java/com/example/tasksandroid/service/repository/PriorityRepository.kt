@@ -1,41 +1,34 @@
 package com.example.tasksandroid.service.repository
 
 import android.content.Context
-import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.example.tasksandroid.R
 import com.example.tasksandroid.model.PriorityModel
 import com.example.tasksandroid.service.listener.APIListener
 import com.example.tasksandroid.service.repository.local.TaskDatabase
 import com.example.tasksandroid.service.repository.remote.PriorityService
 import com.example.tasksandroid.service.repository.remote.RetrofitClient
-import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class PriorityRepository(val context: Context) {
+class PriorityRepository(context: Context): BaseRepository(context) {
 
     private val remoteCall = RetrofitClient.getServices(PriorityService::class.java)
     private val dataBase = TaskDatabase.getDatabase(context).priorityDAO()
 
+    companion object{
+        private val cache = mutableMapOf<Int, String>()
+        private fun getDescription(id: Int): String{
+            return cache[id] ?: ""
+        }
+
+        private fun setDescription(id: Int, description: String){
+            cache[id] = description
+        }
+    }
+
     fun listPriority(listener: APIListener<List<PriorityModel>>){
-        val call = remoteCall.list()
-        call.enqueue(object : Callback<List<PriorityModel>>{
-            override fun onResponse(
-                call: Call<List<PriorityModel>>,
-                response: Response<List<PriorityModel>>){
-                if(response.code() == TaskConstants.HTTP.SUCCESS){
-                    response.body()?.let { listener.onSuccess(it) }
-                }else{
-
-                    listener.onFailure(failureResponse(response.errorBody().toString()))
-                }
-            }
-            override fun onFailure(call: Call<List<PriorityModel>>, t: Throwable) {
-                listener.onFailure(context.getString(R.string.ERROR_UNEXPECTED))
-
-            }
-        })
+        executeCall(remoteCall.list(), listener)
     }
 
     fun savePriorities(list: List<PriorityModel>){
@@ -43,8 +36,20 @@ class PriorityRepository(val context: Context) {
         dataBase.save(list)
     }
 
-    private fun failureResponse(str: String): String{
-        return Gson().fromJson(str, String::class.java)
+    fun listPriority(): List<PriorityModel>{
+        return dataBase.list()
+
     }
+
+    fun getPriorityById(id: Int): String{
+        var description = getDescription(id)
+        if (description == ""){
+            description = dataBase.getPriorityById(id)
+            setDescription(id, description)
+            return description
+        }
+        return description
+    }
+
 
 }

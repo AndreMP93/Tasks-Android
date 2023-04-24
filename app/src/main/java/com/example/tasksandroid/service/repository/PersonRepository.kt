@@ -12,48 +12,17 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class PersonRepository (val context: Context){
+class PersonRepository (context: Context): BaseRepository(context){
 
     private val remoteCall = RetrofitClient.getServices(PersonService::class.java)
 
     fun login(email: String, password: String, listener: APIListener<PersonModel>){
         val call = remoteCall.login(email, password)
-        call.enqueue(object :Callback<PersonModel>{
-            override fun onResponse(call: Call<PersonModel>, response: Response<PersonModel>) {
-                if(response.code() == TaskConstants.HTTP.SUCCESS){
-                    response.body()?.let { listener.onSuccess(it) }
-                }else{
-
-                    listener.onFailure(failureResponse(response.errorBody().toString()))
-                }
-            }
-
-            override fun onFailure(call: Call<PersonModel>, t: Throwable) {
-                listener.onFailure(context.getString(R.string.ERROR_UNEXPECTED))
-            }
-
-        })
+        executeCall(call, listener)
     }
 
     fun create(name: String, email: String, password: String, listener: APIListener<PersonModel>){
         val call = remoteCall.create(name, email, password)
-        call.enqueue(object :Callback<PersonModel>{
-            override fun onResponse(call: Call<PersonModel>, response: Response<PersonModel>) {
-                if(response.code() == TaskConstants.HTTP.SUCCESS){
-                    response.body()?.let { listener.onSuccess(it) }
-                }else{
-                    listener.onFailure(failureResponse(response.errorBody().toString()))
-                }
-            }
-
-            override fun onFailure(call: Call<PersonModel>, t: Throwable) {
-                listener.onFailure(context.getString(R.string.ERROR_UNEXPECTED))
-            }
-
-        })
-    }
-
-    private fun failureResponse(str: String): String{
-        return Gson().fromJson(str, String::class.java)
+        executeCall(call, listener)
     }
 }
