@@ -1,6 +1,8 @@
 package com.example.tasksandroid.service.repository
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.example.tasksandroid.R
 import com.example.tasksandroid.model.TaskModel
@@ -31,5 +33,18 @@ open class BaseRepository(val context: Context) {
             }
 
         })
+    }
+
+    fun isConnectionAvailable(): Boolean{
+        var result = false
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork  = connectivityManager.activeNetwork?: return false
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+        result = when{
+            networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            else -> false
+        }
+        return result
     }
 }

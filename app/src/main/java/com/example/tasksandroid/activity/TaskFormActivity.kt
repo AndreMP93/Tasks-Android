@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import android.widget.DatePicker
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
+import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.example.tasksandroid.R
 import com.example.tasksandroid.databinding.ActivityTaskFormBinding
 import com.example.tasksandroid.model.PriorityModel
@@ -21,6 +22,7 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
     private lateinit var viewModel: TaskFormViewModel
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy")
     private var priorityList: List<PriorityModel> = mutableListOf()
+    private var taskIdIdentification = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +41,7 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
 
         builder.buttonSave.setOnClickListener {
             val task = TaskModel().apply {
-                this.id = 0
+                this.id = taskIdIdentification
                 this.description = builder.editDescription.text.toString()
                 this.complete = builder.checkComplete.isChecked
                 this.dueDate = builder.buttonDate.text.toString()
@@ -50,6 +52,8 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
 
             viewModel.save(task)
         }
+
+        loadDataFromActivity()
 
         viewModel.loadPriority()
         observe()
@@ -76,16 +80,55 @@ class TaskFormActivity : AppCompatActivity(), DatePickerDialog.OnDateSetListener
 
         viewModel.taskSave.observe(this){
             if(it.status()){
-                showToast(getString(R.string.task_created))
+                if(taskIdIdentification == 0){
+                    showToast(getString(R.string.task_created))
+                }else{
+                    showToast(getString(R.string.task_updated))
+                }
+
                 finish()
             }else{
                 showToast(it.message)
             }
         }
+
+        viewModel.task.observe(this){
+            builder.editDescription.setText(it.description)
+            builder.spinnerPriority.setSelection(getIndex(it.priorityId))
+            builder.checkComplete.isChecked = it.complete
+            val date = SimpleDateFormat("yyyy-MM-dd").parse(it.dueDate)
+            builder.buttonDate.text = SimpleDateFormat("yyyy-MM-dd").format(date)
+        }
+
+        viewModel.taskLoad.observe(this){
+            showToast(it.message)
+            finish()
+        }
+    }
+
+    private fun getIndex(priorityId: Int): Int{
+        var index = 0
+        for(item in priorityList){
+            if(item.id == priorityId){
+                break
+            }
+            index++
+        }
+        return index
     }
 
     private fun showToast(message: String){
         Toast.makeText(applicationContext, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun loadDataFromActivity(){
+        val bundle = intent.extras
+        if(bundle!= null){
+            taskIdIdentification = bundle.getInt(TaskConstants.BUNDLE.TASKID)
+            viewModel.load(taskIdIdentification)
+        }
+
+
     }
 
 }

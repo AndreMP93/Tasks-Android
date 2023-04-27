@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
-import com.example.tasksandroid.MainActivity
 import com.example.tasksandroid.databinding.ActivityLoginBinding
 import com.example.tasksandroid.viewmodel.LoginViewModel
 
@@ -18,6 +17,7 @@ class LoginActivity : AppCompatActivity() {
         loginBuilder = ActivityLoginBinding.inflate(layoutInflater)
         loginViewModel = ViewModelProvider(this)[LoginViewModel::class.java]
         setContentView(loginBuilder.root)
+        supportActionBar?.hide()
 
         loginBuilder.loginButton.setOnClickListener {
             loginViewModel.doLogin(

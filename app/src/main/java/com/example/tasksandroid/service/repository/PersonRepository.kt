@@ -17,11 +17,19 @@ class PersonRepository (context: Context): BaseRepository(context){
     private val remoteCall = RetrofitClient.getServices(PersonService::class.java)
 
     fun login(email: String, password: String, listener: APIListener<PersonModel>){
+        if(!isConnectionAvailable()){
+            listener.onFailure(context.getString(R.string.ERROR_INTERNET_CONNECTION))
+            return
+        }
         val call = remoteCall.login(email, password)
         executeCall(call, listener)
     }
 
     fun create(name: String, email: String, password: String, listener: APIListener<PersonModel>){
+        if(!isConnectionAvailable()){
+            listener.onFailure(context.getString(R.string.ERROR_INTERNET_CONNECTION))
+            return
+        }
         val call = remoteCall.create(name, email, password)
         executeCall(call, listener)
     }
